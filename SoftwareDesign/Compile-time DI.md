@@ -1,2 +1,0 @@
-# Compile Time DI
-
