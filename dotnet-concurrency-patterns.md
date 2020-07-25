@@ -85,9 +85,12 @@ public class RemoteBackendClient
 }
 ```
 ## Task Completion Source
-Ok, now we can work with fire-n-forget scenario! But what with the case when you need to deal with request-response pattern, but you have no API out of the box? Realy, you can easely implement it by yourself with  `Task Completion Source`. 
+Ok, now we can work with fire-n-forget scenario! But what with the case when you need to deal with request-response pattern, but you have no API out of the box? 
+Good news! You can easely implement it by yourself with  `Task Completion Source`. 
 
-Here we try to implement such API for [WAMP](https://wamp-proto.org/)(websocket-based request-reply protocol), but you can see many use cases of this scenario from working with Kafka to UDP
+Here we try to implement such API for [WAMP](https://wamp-proto.org/)-like RPC protocol, but you can see many use cases of this scenario from working with Kafka to UDP
+
+
 
 ## Spin Wait
 Ok, now we can deal with IO-bound work, but how about CPU-bound? Sometimes(very rare, in my practice, but who knows) you need to make some intensive CPU-bound work in background. If you just run it in separate thread you can affect your main thread performance and(especially if you are hosted in clouds) your service SLI may degradate. Here is where `spin waiting` comes to help
