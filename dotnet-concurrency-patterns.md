@@ -173,4 +173,4 @@ while (!token.IsCancellationRequested)
 }
 ```
 ## Other
-Actor model, CSP
+Concurrency is very hard and realy there are many ways to solve the same problems. Above there are one of my trick that helps me a lot in py practice, but there are a lot of more complicated things and approaches reated to concurrency(Actor model and CSP for example). So just stay tuned and keep practicing.

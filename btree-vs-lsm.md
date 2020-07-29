@@ -1,0 +1,1 @@
++ LSMs are for write-heavy workloads and BTrees are for read-heavy workloads
