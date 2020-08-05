@@ -26,7 +26,9 @@ object Naive{
   }
 }
 ```
-This is realy nice implementation because it's very tolerate to writes as far as it is append-only. But what about reads? 
+Our readonly data file we will call write-ahead log or just `wal`
+
+In fact this is realy nice implementation because it's very tolerate to writes as far as it is append-only. But what about reads? 
 In order to speedup reads we create a simple index: a HashMap with our database keys and offset as value:
 ```scala
 object Naive {
