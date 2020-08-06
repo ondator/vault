@@ -18,3 +18,7 @@ Thus basic insert algorithm is:
 + find a node to insert
 + if node size less than threshold insert new value
 + if node size more than threshold insert new value, split node into two and update parent node
+
+```scala
+// todo
+```
