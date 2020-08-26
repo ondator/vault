@@ -23,7 +23,6 @@ repeat while (Is master key present?) is (yes)
 :Try to set master key;
 stop
 @enduml
-
 ```
 
 

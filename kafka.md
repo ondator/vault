@@ -36,3 +36,4 @@ For production I preffer to use [k8s banzaicloud operator](https://github.com/ba
 ## Architecture
 todo
 ### Key concepts:
+todo
