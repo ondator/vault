@@ -14,7 +14,7 @@ to achieve such goals production-ready service must be compliant to 12 factors
 ## 12 factors
 ### 1. Code base
 + Code base should be managed through VCS
-+ Few apps must NOT share same code. If this violates than you should segregate common code to the library(see [Dependencies](#dependencies)) 
++ Few apps must NOT share same code. If this violates than you should segregate common code to the library(see [Dependencies](#2-dependencies)) 
 
 ### 2. Dependencies
 + All dependencies should be declared explicitly(by manifest file such as `package.json` for `npm`)
