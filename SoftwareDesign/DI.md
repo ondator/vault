@@ -11,7 +11,7 @@ DI by injection point:
 
 DI by worktime:
 - runtime(like in AspNet)
-- Compiletime DI ([Cake pattern](../cake-pattern.md) or [Reader monad](../reader.md))
+- Compiletime DI ([Cake pattern](../Scala/cake-pattern.md) or [Reader monad](../reader.md))
 
 
 
