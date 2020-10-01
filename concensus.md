@@ -124,4 +124,6 @@ Raft is new algorithm(2014) inspired by many Paxos disadvantages. I will not pro
 + it is a fixed sequencer, so it's a lot simplier
 + proposal numbers are strictly incremental, so it has much less chatty communications
 + it has clearly identified phases, so it's realy simplier to understand
-+ at every time leader has known, so Raft doesn't loose data
++ Raft is based on random timeouts concepts(actually two sets of timeouts *election* and *heartbeat* timeout), so all operations latency are at least `2*max(heartbeat_timeout)` (because [Little's law](laws.md/#littles-law) )
++ It's very easy to add or remove new nodes
++ In case of net-split Raft can loose some data. Assume there are 5 nodes A,B,C,D,E and A was a leader. Than we have a netsplit and A and B was separated from C,D and E. On the new partition after election timeout C become a leader. Then A receive messages and C receive messages. When netsplit will be healed A become a follower node(because C has higher epoch number) and log from C will be replicated to A and B, but data sended from A to B will be thrown away.
