@@ -20,5 +20,5 @@ Recently I read awesome book by Neal Ford called ["Evolutionary Architecture"](h
 > — Mark Richards
 - At the Neal's approach architects role should be dedicated to team(also team should be crossfunctional)
 - Seems like that Evolutionary Architecture cornerstone and [Fowler's 9 microservices rules](../microservices.md/#9-microservices-rules) are quite similar
-- Strive for a low number of connections between development
-teams. Seems like Less or other scaled framework should be adopted?
+- Strive for a low number of connections between development teams. Seems like Less or other scaled framework should be adopted?
+- This book ideas looks much more consistent in addition to new Open Group [Agile Architecture standart](https://publications.opengroup.org/c208?_ga=2.2181682.306539801.1602100093-1756631493.1602100093). In particular it's become more clear that the main focus of architecture shifts from intentional architecture to control emergent architecture. So FF helps with emergent, while classic approaches still valid for intentional design

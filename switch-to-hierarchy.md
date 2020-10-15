@@ -1,6 +1,6 @@
 # Hierarchy vs Pattern matching
 
-Long time ago inspired by awesome M.Fowler book [Refactoring](https://martinfowler.com/books/refactoring.html) I was frequently asking on interview to refator such code:
+Long time ago inspired by awesome M.Fowler book [Refactoring](https://martinfowler.com/books/refactoring.html) I was frequently asking on interview to refactor a code block like this:
 
 ```csharp
 public class Animal
@@ -32,11 +32,6 @@ public class Dog : Animal
     {
         Bark();
     }
-
-    private void Bark()
-    {
-        ...
-    }
 }
 
 public class Cat : Animal
@@ -45,16 +40,10 @@ public class Cat : Animal
     {
         Mew();
     }
-
-    private void Mew()
-    {
-        ...
-    }
 }
 ```
 
-Looks much better, right? Seems like now we can simplier add new animals and `MakeSound` logic is now fully independent and more SOLID because Cthulhu doesn't know how to Bark ;)
-
+Looks much better, right? Seems like now we can simplier add new animals and `MakeSound` logic is now fully independent and more SOLID because Cthulhu doesn't know how to Bark ;)  
 But what if our application specific is not to extend animals hierarchy but to add new abstract methods to `Animal`(and concrete implementation to descendants)? Seems like in this case we are inifinitly change all our concrete classes
 
 ## Pattern Matching
@@ -98,6 +87,8 @@ public class Cat : IAnimal
 ``` 
 
 > Here we change return type of `MakeSound` to `string` because in functional world we prefer pure functions and adding of effects on program boundaries. So we can either model IO effect or simply return our "sound" and do IO somewhere up the stack
+
+Now we have a design which is flexible enought to add new logic, but it's not so good in the case when we need to add a lot of new `IAnimal` implementations. This is a very interesting trade-off. It become much more confusing when you grasp that it is possible to combine two approaches above for one class hierarchy! Seems like that such mixed approach can solve this case, but practically team became confused and try use one consolidated approach
 
 So here is the summary:
 + hierarchy is only the one of possible solutions
