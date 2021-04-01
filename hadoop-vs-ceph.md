@@ -4,8 +4,12 @@ Here is some comparision in proc and cons format between HDFS(distributed file s
 
 | HDFS | S3 |
 |------|----|
-| | + can work effictively with all file size(has no block size)|
-| + has large ecosystem over it | |
+| - works effectively only with files larger than block size | + can work effictively with all file size(has no block size)|
+| + has large ecosystem over it | + a lot big data tools works with S3 as well as hdfs|
 | + out of the box crosskey consistency guarantees | |
-| | + has no single point of failure (name node)|
+| + has no single point of failure because name node autofailover | + has no single point of failure (name node)|
+| - fucked up on large files or huge amount of small files | - fucked up on huge amount of small files (minio\ceph) |
+| - append only | |
+
+
 
