@@ -32,3 +32,10 @@ though it will take time and effort, the time spent early is a fraction of the c
 team perpetually procrastinates on the update. Because most libraries provide utilitarian functionality, teams can afford to update
 them only when new desired functionality appears, using more of an “update when
 needed” model.
+
+
+### Nick Tune at "The Relationship Between Software Architecture And Business Models (and more)"
+
+In [this article](https://medium.com/nick-tune-tech-strategy-blog/the-relationship-between-software-architecture-and-business-models-and-more-7209dc3be83e) Nick sets his point at technologies and in his opinion technology should be easy to change (I believe that frameworks are not so easy to change):
+As code gets older it becomes harder to change. Technologies eventually become redundant and need to be replaced by newer technologies which enable code be to developed more rapidly.  
+Coupling in the software may impact team boundaries. If parts of the code are too tightly coupled or shaped around hard-to-replace technologies, they cannot easily be decoupled to match the ideal domain and team boundaries. Therefore, the domain and team boundaries must conform to the legacy architecture and not vice-versa.
