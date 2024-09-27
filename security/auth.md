@@ -22,10 +22,6 @@ https://docs.oasis-open.org/security/saml/v2.0/saml-profiles-2.0-os.pdf
 - SAML Bearer
 https://tools.ietf.org/id/draft-ietf-oauth-saml2-bearer-10.html
 #### безопасность
-### kerberos & ldap
-#### концепция
-#### основные сценарии
-#### безопасность
 ## Основные технические средства
 ### keycloak
 ### adfs
