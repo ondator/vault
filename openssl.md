@@ -23,3 +23,8 @@ keytool -list -keystore /opt/bitnami/java/lib/security/cacerts -storepass change
 
 - cacerts
  keytool -list -cacerts -storepass changeit -v
+
+ - pem to crt
+  ```sh
+  openssl x509 -outform der -in your-cert.pem -out your-cert.crt
+  ```
