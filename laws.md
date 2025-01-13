@@ -17,3 +17,6 @@ With a sufficient number of users of an API, it does not matter what you promise
 ## Brooks's law
 Adding manpower to a late software project makes it later
 
+## Miller's law
+the number of objects an average human can hold in short-term memory is 7 ± 2
+
