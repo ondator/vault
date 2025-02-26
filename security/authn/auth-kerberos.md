@@ -23,11 +23,11 @@ a --> c: AP_REP
 
 На всякий случай, приведу тут словарик Kerberos-терминов, которые наверняка вам встретятся при работе с этим чудом техники:
 
-- Realm -- пространство 
-- Principal -- 
-- SPN -- 
-- UPN -- 
-- Keytab --
+- Realm -- некий керберосный теннант. Чаще всего соответсвует корпоративному домену но в UPPER CASE. В наших примерах это EXAMPLE.ORG
+- Principal -- аутентифицируемое лицо. Принципалы бывают разные: бывает Service Principal -- это некое приложение, которое хочет аутентифицироваться само и может принимать оказывать какой-то сервис User Principal'ам. User Principal'ы -- это уже конечные пользователи. При этом и у user'ов и у service'ов есть kerberos principal(krbPrincipalName) -- это, в свою очередь просто некий атрибут(для простоты можно считать его керберосным username'ом)
+- SPN -- Service Principal Name. Это как раз kerberos principal у Service Principal'а. Обычно формируется в виде протокол/урл_сервиса@реалм. Для нашего кейклока это будет HTTP/keycloak@EXAMPLE.ORG(потому что это веб-сервис, который висит на домене keycloak и находится в реалме EXAMPLE.ORG). Если бы мы хотели аутентифицировать(и аутентифицироваться в) почтовый сервис, то у нас было бы что-то типа SMTP/postfix.example.org@EXAMPLE.ORG
+- UPN -- вообще это стандартный LDAP атрибут(User Principal Name) в Microsoft ActiveDirectory, который мы немного затронули в предыдущей главе про LDAP, но тут еще раз остановимся на нем с важным уточнением: в ActiveDirectory обычно UPN и KerberosPrincipal пользователей одинаковые, но _это не обязательно_. Я лично видел инсталяцию, где UPN и Kerberos Principal пользоватлей отличались хвостом
+- Keytab -- как мы разобрались выше, принципалы бывают User, а бывают Service. ???
 - KVNO -- версия секретного ключа принципала. Дело в том, что при смене пароля принципала, для него генерируется новый секретный ключ и что бы тикеты, которые были подписаны старым ключем протухли, используется KVNO. Фактически это просто номер версии, который инкрементально растет при каждой смене пароля
 - KDC --  key distribution center. Фактически -- Kerberos-сервер
 - AS -- подсистема KDC, обрабатывающая AS_ запросы
@@ -36,9 +36,14 @@ a --> c: AP_REP
   
 ## Магия SSO
 Это все замечательно, но самый главный фокус который дает Kerberos, это даже не безопасная аутентификация, а то, что с Kerberos'ом мы можем войти в любую систему, не заставляя пользователя постоянно вводить логин и пароль (т.н. механика Single-Sign-On или SSO).
-Все это получается благодаря тому, что у нас вместо обычного пароля есть тикет и мы можем абсолютно безопасно предъявлять его в KDC при входе в любую систему, тем самым, автоматически авторизовываясь в этой системе. Системе остается всего-лишь попросить у пользователя его тикет, для чего мы будем использовать механизм SPNEGO.
-## настройка KDC
-> этот шаг мы делаем самостоятельно только на нашем тестовом стенде. В бою, для вас все выполнит администратор контроллера домена
+Все это получается благодаря тому, что у нас вместо обычного пароля есть тикет и мы можем абсолютно безопасно предъявлять его в KDC при входе в любую систему, тем самым, автоматически авторизовываясь в этой системе. Системе остается всего-лишь попросить у пользователя его тикет, для чего мы будем использовать механизм SPNEGO, но не просто так, а обернутый в GSSAPI. Давайте разбираться дальше.
+
+## SPNEGO
+## GSSAPI
+> для дальнейших упражнений можно взять [мой набор docker-compose песочниц](https://github.com/ondator/sandboxes) и попользоваться компоузом keycloak/keycloak-postgres-dc.yml
+
+## Настройка KDC
+> этот шаг мы делаем самостоятельно только на нашем тестовом стенде. В бою, для вас все выполнит администратор контроллера домена.
 В этот момент нам понадобится контейнер kdc. Проваливаемся в него и делаем следующее:
 1. Создаем принципала для нашего кейклока 
    ```sh
@@ -57,7 +62,7 @@ a --> c: AP_REP
    $ ktadd -k /tmp/kc2.keytab HTTP/keycloak2
    ```
 
-в результате всех манипуляций, в контейнере keycloak2 должен появиться файл /tmp/kc2.keytab и при вызове `KRB5_TRACE=/dev/stdout kinit -k -t /tmp/kc2.keytab HTTP/keycloak2@EXAMPLE.COM`
+в результате всех манипуляций, в контейнере keycloak2 должен появиться файл /tmp/kc2.keytab и при вызове `KRB5_TRACE=/dev/stdout kinit -k -t /tmp/kc2.keytab HTTP/keycloak2@EXAMPLE.ORG`
 не должно вывалиться ошибок, а если после еще и вызвать `klist -l`, то должно появиться что-то вроде
 ```sh
 Principal name                 Cache name
@@ -65,63 +70,36 @@ Principal name                 Cache name
 HTTP/keycloak2@EXAMPLE.ORG          FILE:/tmp/krb5cc_1001
 ```
 
-## настройка
-0. открываем 88 порт от нашей системы до KDC
-1. получаем УЗ и кейтаб
-2. создаем krb5.conf в /etc
+## Настройка Keycloak
+1. открываем 88 порт от нашего кейклока до KDC
+2. получаем SPN и кейтаб (см предыдущий пункт)
+3. создаем krb5.conf в /etc 
 ```ini
 [libdefaults]
- dns_lookup_realm = false
- ticket_lifetime = 24h
- renew_lifetime = 7d
- forwardable = true
- rdns = false
- pkinit_anchors = FILE:/etc/pki/tls/certs/ca-bundle.crt
- default_realm = SAMPLE.INT
- default_ccache_name = KEYRING:persistent:%{uid}
- allow_weak_crypto = true
-# permitted_enctypes = rc4-hmac arcfour-hmac arcfour-hmac-md5
-# default_tkt_enctypes = rc4-hmac arcfour-hmac arcfour-hmac-md5
-# default_tgs_enctypes = rc4-hmac arcfour-hmac arcfour-hmac-md5
- default_tkt_enctypes = aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 rc4-hmac
- default_tgs_enctypes = aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 rc4-hmac
+ default_realm = EXAMPLE.ORG
 
 [realms]
  EXAMPLE.COM = {
-  kdc = DC.EXAMPLE.COM
-  default_domain = EXAMPLE.COM
+  kdc = DC.EXAMPLE.ORG
+  default_domain = EXAMPLE.ORG
  }
-
- SAMPLE.INT = {
-  kdc = DC1.SAMPLE.INT
-  default_domain = SAMPLE.INT
- }
-
-[domain_realm]
- .example.com = EXAMPLE.COM
- example.com = EXAMPLE.COM
- EXAMPLE.COM = EXAMPLE.COM
- .EXAMPLE.COM = EXAMPLE.COM
-
- .sample.int = SAMPLE.INT
- sample.int = SAMPLE.INT
- SAMPLE.INT = SAMPLE.INT
- .SAMPLE.INT = SAMPLE.INT
 ```
-Если мы не знаем адрес kdc, то можно посмотреть nslookup'ом:
-`nslookup -type=any _kerberos._tcp.EXAMPLE.COM`
+Если мы не знаем адрес kdc, то можно попробовать посмотреть nslookup'ом:
+`nslookup -type=any _kerberos._tcp.EXAMPLE.ORG`
 
-1. на всякий случай стоит сделать kinit -k -t /etc/prod.keytab HTTP/uchetka.example.com@EXAMPLE.COM
-2. вы великолепны
+4. на всякий случай стоит сделать `KRB5_TRACE=/dev/stdout kinit -k -t /tmp/kc2.keytab HTTP/keycloak2@EXAMPLE.ORG`
+5. вы великолепны
 
-## дебаг
+> если используете keycloak-postgres-dc.yml из моего компоуза то пп 1 и 3 можно пропустить
+
+## Дебаг
 
 не работать может потому что
 1. вы криворукий дебил
-2. админ АД криворукий дебил
+2. админ контроллера домена криворукий дебил
 
 - что бы убедиться, что мы не верблюды, стоит получить kerberos tiket и посмотреть на него:
-1. делаем `KRB5_TRACE=/dev/stdout kinit -k -t /etc/prod.keytab HTTP/uchetka.example.com@EXAMPLE.COM`
+1. делаем `KRB5_TRACE=/dev/stdout kinit -k -t /tmp/kc2.keytab HTTP/keycloak2@EXAMPLE.ORG`
 2. делаем `klist -l`
 
 - что бы убедиться, что админ АД не верблюд мы
@@ -133,7 +111,9 @@ HTTP/keycloak2@EXAMPLE.ORG          FILE:/tmp/krb5cc_1001
 3. в конце-концов можно поснифать spnego-токены(просто через F12/network их не видно): chrome://net-export/
 
 - еще стоит
-1. проверить kerberos principal. Внезапно он может оказаться отличным от UserPrincipalName. Симптомы -- ошибка вида 
+
+1. Включить ползунок парольной аутентификации через керберос. Если проблема именно со spnego, то аутентификация по паролю будет работать, если проблема с керберосом, то посыпятся логи
+2. проверить kerberos principal. Внезапно он может оказаться отличным от UserPrincipalName в ActiveDirectory. Симптомы -- ошибка вида при включенной галке парольной аутентификации через керберос
 ```
 >>>KRBError:
          sTime is Mon Oct 07 17:36:33 UTC 2024 1728322593000
@@ -145,10 +125,26 @@ HTTP/keycloak2@EXAMPLE.ORG          FILE:/tmp/krb5cc_1001
                 [Krb5LoginModule] authentication failed
 ```
 
-> N.B. логика создания kerberos принципала в кейклоке следующая: при импорте пользователя берется атрибут указанный в поле Kerberos principal attribute и записывается в readOnly атрибут пользователя KERBEROS_PRINCIPAL. При аутентификации значение достается из KERBEROS_PRINCIPAL, и если оно с доменным суффиксом, то отдается в KDC как есть, если без суффикса, то суффикс приделывается исходя из kerberos realm'а. Т.е. если UPN с некорректным суффиксом, а sAMAccountName корректный, то sAMAccountName в Kerberos principal attribute решит проблему. При этом, в версии ниже 22.0.5 зачем-то сделана странная проверка на доменный суффикс, и UPN, если суффикс отличается от реалма даже не будет отправлен в KDC(процесс сразу свалится с ошибкой). С 22.0.5 это поведение убрали, но почему-то sAMAccountName в Kerberos principal attribute ломает импорт пользователей. Чинится созданием маппера на атрибут KERBEROS_PRINCIPAL с значением ldap-атрибута sAMAccountName
-
-2. Включить ползунок парольной аутентификации через керберос. Если проблема именно со spnego, то аутентификация по паролю будет работать, если проблема с керберосом, то посыпятся логи
+> N.B. логика создания kerberos принципала в кейклоке следующая: при импорте пользователя берется атрибут указанный в поле Kerberos principal attribute и записывается в readOnly атрибут пользователя KERBEROS_PRINCIPAL. При аутентификации значение достается из KERBEROS_PRINCIPAL, и если оно с доменным суффиксом, то отдается в KDC как есть, если без суффикса, то суффикс приделывается исходя из kerberos realm'а. Т.е. если UPN с некорректным суффиксом, а sAMAccountName корректный, то sAMAccountName в Kerberos principal attribute решит проблему. При этом, в версии ниже 22.0.5 зачем-то сделана странная проверка на доменный суффикс, и UPN, если суффикс отличается от реалма даже не будет отправлен в KDC(процесс сразу свалится с ошибкой). С 22.0.5 это поведение убрали, но почему-то sAMAccountName в Kerberos principal attribute ломает импорт пользователей. Кажется, что единственное рабочее -- не заполнять Kerberos principal attribute вообще, в этом случае кейклок положит в KERBEROS_PRINCIPAL username
 3. Проверить криптоалгоритмы в krb5.conf. Вероятно надо включить allow_weak_crypto = true и что-то дописать в permitted_enctypes. Симптомы -- ошибка вида 
    ```
    2024-06-06 07:54:31,547 WARN  [org.keycloak.federation.kerberos.impl.SPNEGOAuthenticator] (executor-thread-185) SPNEGO login failed: java.security.PrivilegedActionException: GSSException: Failure unspecified at GSS-API level (Mechanism level: Invalid argument (400) - Cannot find key of appropriate type to decrypt AP-REQ - RC4 with HMAC)
+   ```
+
+   в этом случае krb5.conf должен выглядеть как-то так:
+   ```ini
+   [libdefaults]
+   default_realm = EXAMPLE.ORG
+   allow_weak_crypto = true
+   # permitted_enctypes = rc4-hmac arcfour-hmac arcfour-hmac-md5
+   # default_tkt_enctypes = rc4-hmac arcfour-hmac arcfour-hmac-md5
+   # default_tgs_enctypes = rc4-hmac arcfour-hmac arcfour-hmac-md5
+   default_tkt_enctypes = aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 rc4-hmac
+   default_tgs_enctypes = aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 rc4-hmac
+
+   [realms]
+   EXAMPLE.COM = {
+   kdc = DC.EXAMPLE.ORG
+   default_domain = EXAMPLE.ORG
+   }
    ```
