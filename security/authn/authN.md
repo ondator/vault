@@ -1,7 +1,7 @@
 # Enterprise Authentication. Part 1. Basics
-Since working with a lot of different software development and engeneering teams I noticed that a lot of my collegues are not clearly understood all shades of contemporary authentication protocols, moreover frequently confuse authentication with authorization and identification. In this articles I will try to explain what is authentication, how it works based on most popular protocols and how to implement this protocols using [Keycloak](https://www.keycloak.org/)
+Since working with a lot of different software development and engeneering teams I noticed that a lot of my collegues are not clearly understood all shades of contemporary authentication protocols, moreover frequently confuse authentication with authorization and identification. In this articles I will try to explain what is authentication, how it works based on most popular protocols and how to work with this protocols using [Keycloak](https://www.keycloak.org/)
 
-Here is the articles list:
+Seems like it will be a lot of info, so I will split it into a few parts. Here is the articles list:
 - Enterprise Authentication. Part 1. Basics (here you are)
 - [Enterprise Authentication. Part 2. LDAP](./auth-ldap.md)
 - [Enterprise Authentication. Part 3. Kerberos](./auth-kerberos.md)
@@ -15,10 +15,11 @@ First of all we should see the difference between 3 concepts: authentication(aut
 - Authentication is responsible for verification of identification procedure. Also a lot of options possible here: password, confirmation codes by SMS/email/etc, one-time-password apps like Google Authenticator, etc. The main idea is to take some proof that person in front of us is exactly the same who he want to appear
 - Authorization is the final step of access management process. It's responsible for confirmation of person's permissions for some actions which persons want to do. Basically it's can be some kind of dialogue with some "arbiter" like "Can I? No/Yes". Here also can be a lot of realisation options, but I belive that authorization is a subject for a separate article cycle (or may be even a RFC like 6749, which we will briefly touch in article about [OIDC](./auth-oidc.md))
 
-A Keycloak which I introduced before and which we will use for all our study cases is an open source identity and access management (IAM) software. It's used for manipulating user's identities(for identification), and as central authentication system
+Keycloak which I mentioned before and which we will use for all our study cases is an open source identity and access management (IAM) software. It's used for manipulating user's identities(for identification), and as central authentication system
 ![access management](../../assets/img/access_management.png)
 > Actually Keycloak also could be used for authorization purposes, but it's not point of our interests now (however we see a few options in SAML and OIDC chapters)
-As I said here we will discuss the most popular authN protocols. However, there are a lot of them and all of them are quite different, there are a lot of common parts. First of all, all of them try to grant(or not) access for some __User__ to some __Service__. Also most of them try to differ some ways User used to get access to Service(for example mobile app or web site or smth else), usualy it is called __Client__. Besided that, for obtaining access to Service User should authenticate in some __Authentication Service__ or simply __AS__(yep, it's our Keycloak). Than, most of them based on conception of trust. It means that both of Service and AS are trust to each other and both of them can proof itselt to each other(in some cryptographic way). Moreover, our User also trust to our AS and them also have some way(usualy also cryptographic-based) to proof it's identity to each other.
+
+As I said here we will discuss the most popular authN protocols. However, there are a lot of them and all of them are quite different, there are a lot of similar traits. First of all, all of them try to grant(or not) access for some __User__ to some __Service__. Also most of them try to differ some ways User used to get access to Service(for example mobile app or web site or smth else), usualy it is called __Client__. Besided that, for obtaining access to Service User should authenticate in some __Authentication Service__ or simply __AS__(yep, it's our Keycloak). Than, most of them based on conception of trust. It means that both of Service and AS are trust to each other and both of them can proof itselt to each other(in some cryptographic way). Moreover, our User also trust to our AS and them also have some way(usualy also cryptographic-based) to proof it's identity to each other.
 
 
 ## Why so serious? 
