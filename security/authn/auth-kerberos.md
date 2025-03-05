@@ -123,11 +123,9 @@ KEYCLOAK_EXTRA_ARGS: ... -Dsun.security.krb5.debug=true -Dsun.security.spnego.de
 ```
 > в quay.io все то же самое, но енвы называются KC_LOG_LEVEL и KC_EXTRA_ARGS соответственно. Если запускаем jar, то настраиваем в standalone-ha.xml, согласно документации
 
-Вообще, не работать может потому что
-1. вы криворукий дибил
-2. админ контроллера домена криворукий дибил
+Вообще, не работать может потому что либо вы криворукий дибил, либо админ контроллера домена криворукий дибил
 
-- что бы убедиться, что мы не верблюды, стоит получить kerberos tiket и посмотреть на него:
+- что бы убедиться, что мы не верблюды, стоит получить kerberos tiсket и посмотреть на него:
 1. делаем `KRB5_TRACE=/dev/stdout kinit -k -t /tmp/kc2.keytab HTTP/keycloak2@EXAMPLE.ORG`
 2. делаем `klist -l`
 
@@ -138,6 +136,7 @@ KEYCLOAK_EXTRA_ARGS: ... -Dsun.security.krb5.debug=true -Dsun.security.spnego.de
 2. если политики не прописаны, то есть способ запустить браузер с флагами и убедиться, что мудак действительно одмен:
 `"C:\Program Files\Google\Chrome\Application\chrome.exe" --auth-server-whitelist="*.example.com,example.com" --auth-negotiate-delegate-whitelist="*.example.com,example.com"`
 3. в конце-концов можно поснифать spnego-токены(просто через F12/network их не видно): chrome://net-export/
+> как мы помним, для того что бы отработал SSO у пользователя в браузере, браузер отправляет Kerberos-тикет кейклоку вместе с заголовком Authorization: Negotiate. Но браузер умный и кому угодно отправлять тикета пользователя не будет, а будет только доверенным ресурсам, которые указаны в специальных настройках. Что бы выставить эти настройки как раз и нужны групповые политики
 
 - еще стоит
 
