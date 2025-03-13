@@ -20,7 +20,7 @@ Adding manpower to a late software project makes it later
 ## Miller's law
 the number of objects an average human can hold in short-term memory is 7 ± 2
 
-## Leman's laws
+## Lehman's laws
 
 + "Continuing Change" — a software system must be continually adapted or it becomes progressively less satisfactory.
 + "Increasing Complexity" — a software system evolves, its complexity increases unless work is done to maintain or reduce it.
