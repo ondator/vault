@@ -20,3 +20,14 @@ Adding manpower to a late software project makes it later
 ## Miller's law
 the number of objects an average human can hold in short-term memory is 7 ± 2
 
+## Leman's laws
+
++ "Continuing Change" — a software system must be continually adapted or it becomes progressively less satisfactory.
++ "Increasing Complexity" — a software system evolves, its complexity increases unless work is done to maintain or reduce it.
++ "Self Regulation" — a software system evolution processes are self-regulating with the distribution of product and process measures close to normal.
++ "Conservation of Organisational Stability (invariant work rate)" — the average effective global activity rate in an evolving a software system is invariant over the product's lifetime.
++ "Conservation of Familiarity" — as a software system evolves, all associated with it, developers, sales personnel and users, for example, must maintain mastery of its content and behaviour to achieve satisfactory evolution. Excessive growth diminishes that mastery. Hence the average incremental growth remains invariant as the system evolves.
++ "Continuing Growth" — the functional content of a software system must be continually increased to maintain user satisfaction over its lifetime.
++ "Declining Quality" — the quality of a software system will appear to be declining unless it is rigorously maintained and adapted to operational environment changes.
++ "Feedback System" (first stated 1974, formalised as law 1996) — software system evolution processes constitute multi-level, multi-loop, multi-agent feedback systems and must be treated as such to achieve significant improvement over any reasonable base.
+
