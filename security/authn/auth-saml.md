@@ -25,17 +25,23 @@ c --> u: provide some awesome features
 Actualy SAML is transport-independent, so it could be implemented over HTTP, SOAP, etc. Here is diagram of SAML using HTTP 302 Redirects, but there are also commonly using HTTP POST way. In SAML universe such transport approaches called **Bindings**.
 Also there are a few options of starting point of SAML flow. In the diagram an initiator of authentication process is SP, but it can also be an IdP (in such case user at first comes to the IdP and than will be redirected to an SP after authentication). Such approaches in SAML called **Profiles**. Here we will see only WebBrowser SP-initiated SSO profile, but there are a lot of other.
 
-Actualy, all this magic doesn't required any configuration except building of trust relationships between SP and IdP. Usualy it's also quite simple, parties should just exchange some metadata including some Ids and crypto keys
-## That's it? We done our best?
+Actualy, all this magic doesn't required any configuration except building of trust relationships between SP and IdP. Usualy it's also quite simple, parties should just exchange some metadata including some ids and crypto keys wrapped in XML document. Moreover, if SP and IdP have network interop they could just exchange metadata links as far as they support metadata publishing.
 ## What about Keycloak?
-
+### Keycloak as SP
+### Keycloak as IdP
+### Few words about ADFS
 
 
 https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf
 http://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-tech-overview-2.0-cd-02.pdf
-#### основные сценарии
+### основные сценарии
 https://docs.oasis-open.org/security/saml/v2.0/saml-profiles-2.0-os.pdf
 - vanila
 - IDP initiated
 - SAML Bearer
 https://tools.ietf.org/id/draft-ietf-oauth-saml2-bearer-10.html
+
+## Debug
+- SAML Debug is quite simple as far as you can sniff HTTP traffic on User Agent. For example, if you use browser, you can just open DevTools and search for SAML Requests/Responses. Than you can apply base64 decode and review SAML XML Messages
+- You can also see Keycloak SAML proccessing logs if set up some envs
+`KEYCLOAK_LOG_LEVEL: WARN,...,org.keycloak.saml.SAMLRequestParser:debug`

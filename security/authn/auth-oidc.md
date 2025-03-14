@@ -1,10 +1,11 @@
 # Enterprise Authentication. Part 4. OIDC
 
-#### концепция
+## концепция
+SAML is quite good, so why we need something else? SAML can't support backend-backend interation. All SAML interactions are personified.
 https://datatracker.ietf.org/doc/html/rfc6749
-#### основные сценарии
+## основные сценарии
 https://datatracker.ietf.org/doc/html/rfc8693
-#### безопасность
+## безопасность
  1. JWT
  + https://www.ducktypelabs.com/review-stop-using-jwt-for-sessions/
  + https://www.ducktypelabs.com/review-stop-using-jwt-for-sessions/
