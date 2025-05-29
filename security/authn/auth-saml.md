@@ -1,10 +1,15 @@
-# Enterprise Authentication. Part 3. SAML
+# Аутентификация 3. SAML
 
-## Why SAML
-In previous part we discussed Kerberos protocol which solved problem of secure user authentication, so why we should be interested in something else? Unfortunately, Kerberos also has it's own Achilles' heel. An issue is that Kerberos requires a lot of settings (set up group policies for SPNEGO, attach workstation to domain and for service we should create a principal and release keytab) in addition to some infrasturcture requirements (synchronized clocks, canonical and trusted DNS). It's not a big deal, but only when you are in LAN, but what we should do if our service should work on WAN?
-> Actualy, few recent Kerberos RFC add some support for some modern preauth techniques such as SPIKE and FAST-based, so it's configuration should be a lot simplier
-## What is SAML
-SAML(security assertion markup language) is raser simplified authentication protocol based on excahnge some XML-encoded documents named **Assertion**. An assertion is some kind of grant similar to kerberos ticket, but also provides a little bit more information about our principal. Same as kerberos ticket Assertion should be asked for some service (named **Service Provider** in SAML terms) by Client (here it names **Agent**) from Authentication Service (named here **Identity Provider** or simply **IdP**). Such assertion request named **SAML Request** and reply from IdP (with Assertion) named **SAML Response**. So, basicly we have something like
+## Зачем SAML
+В предыдущей части мы обсудили протокол Kerberos, который отлично решает проблему безопасной аутентификации, так почему мы должны рассматривать что-то еще? Дело в том, что Kerberos ооочень сложный. Он требует огромной кучи преседаний с настройкой сервера, настройки групповых политик, настройкой домена и заведения рабочих станций в него, а так же выдвигает ряд требований к инфраструктуре (единый NTP с которым будут синхронизированы часы всех машин, каноничный и доверенный DNS и пр.). Как правило, для аутентификации в web-приложениях в интернете это все слишком сложно. Совсем не хочется для вхождения в свой Google-аккаунт входить в Google-домен. И вот тут вот на сцену выходит SAML (security assertion markup language)
+> На самом деле, Kerberos тоже пытается не отставать и инженеры MIT и других аффилированных организаций понимают проблему, поэтому последние RFC, посвященные Kerberos пытаются как-то нивелировать недостатки протокола, например вводя более удобные для WAN способы преаутнтификации (SPIKE и FAST)
+
+## Что такое SAML
+SAML(security assertion markup language) это гораздо более простой протокол, основанный на обмене специальными XML'ками, называемыми **Assertion**. Assertion -- это некий манифест, описывающий пользователя и его права, чем-то похожий на Kerberos тикет, но в Assertion обычно содержится чуть больше информации о самом пользователе. Так же как и в Kerberos, SAML Assertion может быть запрошен для аутентификации в определенном сервисе (в терминах SAML сервис называется **Service Provider**) пользовательским клиентом (в SAML он называется **Agent**) у сервиса аутентификации (или, в терминах SAML, **Identity Provider** или просто **IdP**). Такой запрос на Assertion называется **SAML Request**, а в ответ на него IdP вернет вам **SAML Response**, в котором, как в конверте, и будет содержаться желаемый Assertion.
+> очень важно не путать понятия пользователя и агента. Пользователь -- это человек, который хочет аутентифицироваться, а агент -- это приложение с помощью которого он это делает. Агентом может быть ваше React SPA/мобильное приложение или даже толстый клиент
+
+ Таким образом, у нас получается что-то вроде этого:
+
 ```puml
 actor User as u
 participant Agent as c
@@ -22,24 +27,83 @@ s --> c: response with some data
 c --> u: provide some awesome features
 ```
 
-Actualy SAML is transport-independent, so it could be implemented over HTTP, SOAP, etc. Here is diagram of SAML using HTTP 302 Redirects, but there are also commonly using HTTP POST way. In SAML universe such transport approaches called **Bindings**.
-Also there are a few options of starting point of SAML flow. In the diagram an initiator of authentication process is SP, but it can also be an IdP (in such case user at first comes to the IdP and than will be redirected to an SP after authentication). Such approaches in SAML called **Profiles**. Here we will see only WebBrowser SP-initiated SSO profile, but there are a lot of other.
+Вообще-то SAML позиционирует себя как transport-independent протокол и он может быть реализован поверх HTTP, SOAP и т.д. Выше я нарисовал схемку SAML протокола поверх HTTP с использованием 302 редиректов, но так же есть несколько других схем использования, например часто встречается схема с использованием POST-запросов вместо редиректов. Во вселенной SAML такие схемы использования называются **Bindings**.
+Так же есть несколько опций того, кто будет инициировать процесс аутентификации. На нашей диаграмме процесс инициирован SP (т.е. пользователь приходит в сервис, а тот его перенаправляет на аутентификацию), но это так же может быть и IdP (в этом случае пользователь приходит в сервис аутентифкации, аутентифицируется и потом выбирает в какой сервис пойдет работать). В SAML такие опции называются **Profiles**. 
+Тут мы разберем только WebBrowser SP-initiated SSO profile как наиболее распространенный, но имейте в виду, что есть и другие.
 
-Actualy, all this magic doesn't required any configuration except building of trust relationships between SP and IdP. Usualy it's also quite simple, parties should just exchange some metadata including some ids and crypto keys wrapped in XML document. Moreover, if SP and IdP have network interop they could just exchange metadata links as far as they support metadata publishing.
+> Подробнее про SAML биндинги и профиля можно прочитать [вот тут](https://docs.oasis-open.org/security/saml/v2.0/saml-profiles-2.0-os.pdf)
+
+Самый смак всего этого в том, что протокол не требует какой-то дополнительной конфигурации кроме выстраивания т.н. доверительных отношений между SP и IdP. На практике это просто обмен конфигурационными XMLками между сервисом и провайдером аутентификации, причем, если они оба в интернете, то достаточно будет всего лишь прописать там и там соответствующие URL на метаданные (содержащие публичные криптоключи для верификации подписи).
 ## What about Keycloak?
-### Keycloak as SP
-### Keycloak as IdP
-### Few words about ADFS
+Кейклок в случае SAML может выступать и как SP (т.е. подключаться к какому-то внешнему провайдеру аутентификации), так и в виде IdP (выступать в роли провайдера аутентификации). Разберем обе опции
+> для дальнейших упражнений можно взять [мой набор docker-compose песочниц](https://github.com/ondator/sandboxes) и попользоваться компоузом keycloak/keycloak-postgres-dc.yml. В качестве эксперимента, мы будем настраивать аутентифкацию по SAML между 2мя Keycloak запущенными на http://keycloak:8080 в роли SP и http://keycloak2:8082 в роли IdP
+### Keycloak как IdP
 
+Если мы хотим что бы наш Keycloak выступал в роли IdP, то все что мы должны сделать -- это создать для нашего SP соответствующего клиента. Идем на вкладку Clients и жмем кнопку Create Client. Нас встречает форма, в которой выбираем
+- Client type -- SAML
+- Client ID -- вот тут, внезапно, надо ввести URL с которого будет переадресован пользователь или отправлен запрос на аутентификацию. Если есть метаданные, то там это должно фигурировать в атрибуте под названием entityID. В нашем случае это http://keycloak:8080/realms/master
+- Name и Description могут быть произвольными
+- Root URL и Home URL -- если вдруг SP присылает относительные URL или не присылает их вовсе, то будут использованы соответствующие хост и url. Обычно такого не происходит, поэтому поля можно не заполнять
+- Valid redirect URIs -- фактически ACL для адресов на которые можно редиректить пользователя с Assertion. Можно ввести *, но лучше задать более конкретные URL
+- Valid post logout redirect URIs -- то же, но для разлогинивания
+- IDP-Initiated SSO URL name и IDP Initiated SSO Relay State -- настройки для IDP Initiated SSO, т.е. профиля когда мы сначала идем IdP и оттуда уже в конечный сервис. Редкий кейс, можно не заполнять
+- Master SAML Processing URL -- сюда можно прописать Assertion Consumer URL, если он отличается от redirect URI. ОБычно можно оставить пустым
+- Name ID format -- в SAML Assertion пользователь идентифицируется по специальному полю NameID. В данной настройке указывается формат этого поля. Как правило, это либо Persistent (некий постоянный целочисленный ID пользователя), либо Transient (временный ID, сгенеренный IdP), либо Unspecified (все что угодно). В любой непонятной ситуации ставим Unspecified
+- Force name ID format -- дело в том, что SP может в своем SAML Request запросить NameID в определенном формате. Эта настройка фактически вынуждает keycloak игнорировать этот параметр и всегда отправлять NameID в формате определенном выше
+- Force POST binding -- это как раз определяет способ (binding) по которому будет работать SAML. если включаем, то будет использован HTTP-POST, если выключаем, то Redirect. Для наглядности и простоты отладки лучше использовать Redirect, но могут прийти безопасники и настоять на HTTP-POST
+- Force artifact binding -- настройка, заставляющая SAML работать по Artifact binding схеме. Мы, для наглядности, отключим и эту настройку и предыдущую, что бы работать по binding redirect
+- Include AuthnStatement -- добавляет соответствующий раздел с ограничениями по времени жизни Assertion. В проде крайне рекомендую включать
+- Include OneTimeUse Condition -- полезная настройка, которая делает Assertion одноразовым. Т.е. засунуть такой Assertion повторно не получится. полезно против MITM атак, на проде рекомендую выставлять
+- Sign documents и Sign assertions -- включает подписывание эл. подписью SAML документов
 
-https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf
-http://docs.oasis-open.org/security/saml/Post2.0/sstc-saml-tech-overview-2.0-cd-02.pdf
-### основные сценарии
-https://docs.oasis-open.org/security/saml/v2.0/saml-profiles-2.0-os.pdf
-- vanila
-- IDP initiated
-- SAML Bearer
-https://tools.ietf.org/id/draft-ietf-oauth-saml2-bearer-10.html
+После выставления всех настроек сохраняемся и можем посмотреть на метаданные нового клиента по адресу http://keycloak2:8082/realms/master/protocol/saml/descriptor
+
+### Keycloak как SP
+Тут все просто. Нужно просто подкормить кейклоку файл с метаданными. Для этого, пойдем на вкладку "Identity Providers" и создадим нового провайдера, выбрав в списке SAML 2.0
+В появившейся форме можно заполнить произвольно поля Alias, Display name и Display order, а вот на секцию SAML settings стоит обратить внимание:
+- Service provider entity ID -- это одновременно и урл с которого пойдет запрос на аутентификацию и ID SP. Дело в том, что в SAML все ID являются URL и каждый уважающий себя SP и IdP будут проверять эти URL-ID на соответствие. Проверьте тут, что правильно стоит протокол (http или https) и если у вас админка Keycloak закрыта от посторонних (например вы пробрасываете порты что бы до нее добраться), то хост соответствует тому с которого пойдет аутентифицироваться конечный пользователь. В нашем случае это http://keycloak:8080/realms/master
+- Use entity descriptor и SAML entity descriptor -- эти поля как раз определяют источник метаданных, которые Keycloak высосет для настройки доверительных отношений. В идеале вам либо дадут готовый URL (в этом случае просто вставляем его в SAML entity descriptor), либо пришлют xml файл (в этом случае вам нужно отключить ползунок Use entity descriptor и вставить файл в поле Import config from file). В результате, все поля метаданных будут подгружены автоматически. В случае, если вы эксперементируете с нашими песочницами, то метаданные будут расположены по адресу http://keycloak2:8082/realms/master/protocol/saml/descriptor. Если же вам не повезло и вам не дали метаданные или они не корректные, то дальше я распишу все необходимые поля.
+- Identity provider entity ID -- еще один URL-ID, но на этот раз, это уже про IdP. Он будет указан как идентификатор IdP, но запросы на аутентификацию пойдут в URL из следующей настройки. В нашем эксперименте это http://keycloak2:8082/realms/master
+- Single Sign-On service URL -- именно сюда пойдут запросы (или будет перенаправлен пользователь) для аутентифкации. У нас это http://keycloak2:8082/realms/master/protocol/saml
+- Artifact Resolution service URL и ARTIFACT binding response -- выше я говорил, что SAML Response содержит Assertion, но на самом деле, это не всегда так. Иногда IdP просит сделать еще один round trip и забрать Assertion отдельно используя сообщения ArtifactResolve и ArtifactResponse, соответственно. В этом случае, именно на этот URL будет отправлен ArtifactResolve запрос. В нашем случае не используется, Artifact Resolution service URL оставляем пустым, а ARTIFACT binding response выключаем
+- Single logout service URL -- SAML поддерживает не только технологию единого входа (SSO), но и единого выхода (Single logout). Для разлогинивания (если оно поддерживается),используется отдельный endpoint, который прописывается в данном поле. В нашем случае оставляем пустым
+- Backchannel logout -- Еще одна настройка для Single logout. Дело в том, что logout в SAML может быть так же выполнен двумя способами: через редирект пользователя на IdP (front-channel logout) и через запрос сервер-сервер (Back-channel). Эта настройка нужна как раз для переключения между этими режимами
+- Send 'id_token_hint' in logout requests и Send 'client_id' in logout requests -- специфичная штука для некоторых IdP. Входит в стандарт OIDC, но не входит в SAML. Позволяет идетифицировать пользователя, который пытается разлогиниться. В нашем случае logout не будет, поэтому выключаем
+- NameID policy format -- в SAML Assertion пользователь идентифицируется по специальному полю NameID (хоть это и можно переопределить). В данной настройке указывается формат этого поля. Как правило, это либо Persistent (некий постоянный целочисленный ID пользователя), либо Transient (временный ID, сгенеренный IdP), либо Unspecified (все что угодно). В любой непонятной ситуации ставим Unspecified
+> Подробнее про поля и их типы в SAML можно прочитать в [спецификации](https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf)
+- Principal type и Principal attribute -- это возможность переопределить стандартное поведение по идентификации поьзователя базирующееся на NameID. Если вам больше нравится другое поле, то можно выбрать тут Attribute[Name] или Attribute[Friendly Name] и использовать какой-то другой атрибут пользователя. В случае Name в Principal attribute придется написать полное имя атрибута (например http://schemas.xmlsoap.org/claims/CommonName) в случае же Friendly Name достаточно укороченного имени (CommonName). Как правило, с этой настройкой лучше не играться, потому как любой другой атрибут кроме NameID не гарантирует уникальность пользователя
+- Allow create -- разрешает создавать пользователя в Keycloak "на лету", базируясь из информации из Assertion. Мы это включим
+- HTTP-POST binding response, HTTP-POST binding for AuthnRequest и HTTP-POST binding logout -- это как раз определяет способ (binding) по которому будет работать SAML. если включаем, то будет использован HTTP-POST, если выключаем, то Redirect. Для наглядности и простоты отладки лучше использовать Redirect, но могут прийти безопасники и настоять на HTTP-POST
+- Want AuthnRequests signed, Want Assertions signed и Validate Signatures -- будут ли SAML-документы подписаны. Если включаем, то требуется так же указать тип ключа в Signature algorithm и поле в котором содержится подпись в SAML signature key name, а так же ключ в Validating X509 certificates. Обычно безопасники требуют включать, но мы для наших экспериментов выключим
+- Want Assertions encrypted -- просит IdP шифровать Assertion'ы. В предыдущих версиях Keycloak ключ шифрования прописывался в соседнем поле, теперь же берется из раздела Realm Settings -> Keys
+- Force authentication -- в случае включения этой настройки, IdP будет требовать от клиента залогиниться, даже если у него уже есть рабочая сессия, т.е. фактически отключает SSO
+- Sign service provider metadata -- в xml'ке с метаданными появляется подпись
+- Pass subject -- если включить, то Keycloak передает в поле Subject информацию об аутентифицирующемся. Фактически пытается предзаполнить поле username формы аутентификации. Поддерживается далеко не всеми IdP и некоторые даже могут ругаться на это поле, так что лучше отключить
+- Allowed clock skew -- очень ценная настройка, если у вас нет NTP. Дело в том, что SAML Assertion валиден только определенное время указанное в его узле Conditions, например  `<Conditions NotBefore="2013-03-18T07:38:15.128Z" NotOnOrAfter="2013-03-18T08:48:15.128Z">` и вот если у вас поломанный NTP, то время на вашем SP может уехать за или до указанного. Allowed clock skew позволяет иметь люфт в несколько секунд для этих условий
+
+Выставив указанные атрибуты можно сохранять настройки и пытаться аутентифицироваться. В случае успеха, вы увидите под ввода формой логина/пароля ссылку с названием вашего Identity Provider, кликнув по которой вас средиректит на IdP. После аутентификации в IdP вас должно вернуть обратно и успешно пустить в keycloak
+
+## Пару слов о ADFS
+ADFS (ActiveDirectory Federation Services)-- это компонент Windows Server являющийся стандартной службой для предоставления функций SAML IDP и OIDC поверх службы каталога ActiveDirectory. Достаточно часто его можно встретить в ландшафтах компаний использующих ActiveDirectory, поэтому ниже приведу краткую инструкцию как настроить ADFS в качестве SAML IdP
+
+1. Заходим в консоль управления AD FS и правой кнопкой жмем на Relying Party Trust и выбираем Add Relying Party Trust
+2. В первом окне выбираем Claims Aware
+3. Во втором окне, если метаданные SP дотупны публично, то выбираем загрузку файла или указание URL, если нет, то выбираем Enter data about the relying party manualy
+4. WS-Federation отключаем, SAML 2.0 включаем и вводим в поле URL(ID) SP с которого пойдут запросы на аутентификацию
+5. Вводим URL который будет являться идентификатором AD FS. Желательно указать host AD FS
+6. Указываем настройки доступа. Тут лучше всего проконсультироваться с безопасником, по-умолчанию подходит Permit everyone
+7. На этом основная настройка закончена. Теперь надо добавить необходимые данные о пользователе в Assertion. Жмем правой кнопкой на только что созданный Relying Party Trust и выбираем Edit Claim Issurance Policy
+8. Если у вас пользователи в AD (скорее всего так и есть, иначе зачем вам ADFS), то выбираем Send LDAP Attributes as Claims
+9. Придумываем имя Claim Rule, в качестве Attribute Store выбираем ActiveDirectory и настравиваем трансформации. Слева выбираем атрибут AD, который хотим засунуть в Assertion, справа выбираем (или пишем) атрибут Assertion, в который попадет значение.
+> Можно создать несколько правил трансформации, а можно все запихнуть в одно. Это дело вкуса
+10. если необходимо передать группы AD, то можно создать отдельное правило с типом Send Group Membership as Claims
+
+## Пару слов о безопасности
+SAML очень простой протокол и безопасность его обеспечена тоже достаточно просто. Как вы могли заметить при настройке, как запросы так и ответы SAML протокола могут быть подписаны и Assertion еще и зашифрованы ключами, которыми обмениваются SP и IdP при установлении доверительных отношений. Так же, безопасность обеспечивается политикой exactly once в отношении Assertion со стороны SP, но, к сожалению, в keycloak это не настроить. Т.о. в боевом окружении крайне желательно
+
+- включить подпись Assertion и AuthnRequest
+- убрать Allowed clock skew на стороне SP и выставить время жизни Assertion в несколько секунд
+- использовать, как минимум, TLS, а лучше шифровать Assertion
 
 ## Debug
 - SAML Debug is quite simple as far as you can sniff HTTP traffic on User Agent. For example, if you use browser, you can just open DevTools and search for SAML Requests/Responses. Than you can apply base64 decode and review SAML XML Messages
