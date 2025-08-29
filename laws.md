@@ -31,3 +31,8 @@ the number of objects an average human can hold in short-term memory is 7 ± 2
 + "Declining Quality" — the quality of a software system will appear to be declining unless it is rigorously maintained and adapted to operational environment changes.
 + "Feedback System" (first stated 1974, formalised as law 1996) — software system evolution processes constitute multi-level, multi-loop, multi-agent feedback systems and must be treated as such to achieve significant improvement over any reasonable base.
 
+## Law of unintended consequences
+If you make a descision and not control execution it is possible to obtain some unexpected shit. It has 3 possible options:
+- Unexpected benefit -- you obtain some unexpected benefit. For example you dig down a well and found an oil
+- Unexpected drawback -- you obtain some unexpected shit. For example you dig down a well and stretch against a giant rock
+- Perverse result (or cobra effect) -- хотели как лучше, а получилось как всегда
